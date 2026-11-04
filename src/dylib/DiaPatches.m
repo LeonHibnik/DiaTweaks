@@ -2,6 +2,7 @@
 #import "SafeMode/SafeMode.h"
 #import "Settings/Settings.h"
 #import "Updates/Updates.h"
+#import "AirTrafficControl/Atc.h"
 #import "Test/Test.h"
 #import "DevTools/DevTools.h"
 
@@ -12,7 +13,10 @@ __attribute__((constructor)) static void DPInit(void) {
     DPBeginLaunch();
     if (DPSafeMode == 2) return;
     DPLoadPatches();
-    if (!DPSafeMode) DPInstallPatches();
+    if (!DPSafeMode) {
+        DPInstallPatches();
+        DPInstallAtc();
+    }
     DPInstallSettings();
     DPInstallUpdates();
     DPInstallDevTools();

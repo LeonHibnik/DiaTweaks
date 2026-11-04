@@ -36,6 +36,7 @@
         self.sectionHiders[section] = !shared || [shared isEqual:hider] ? hider : @"";
         add(section, [self rowForPatch:patch]);
     }
+    add(@"Air Traffic Control", [self atcRow]);
     for (NSView *row in [self makeUpdateRows]) add(@"Updates", row);
 
     NSMutableArray<NSView *> *views = [NSMutableArray new];
@@ -80,6 +81,29 @@
     __weak DPOverviewView *weakSelf = self;
     NSView *row = DPLinkRow(DPRow(leading, trailing), patch->title, ^{ weakSelf.open(patch->title, [[DPPageView alloc] initWithPatch:patch]); });
     [self.searchText setObject:search forKey:row];
+    return row;
+}
+
+// Air Traffic Control: route links from other apps to a profile by domain.
+- (NSView *)atcRow {
+    NSStackView *leading = [NSStackView stackViewWithViews:@[
+        DPIconTile(@"airplane", [NSColor valueForKey:@"systemTealColor"]),
+        DPColumn(@[ DPLabel(@"Air Traffic Control", 13, NSFontWeightRegular, NSColor.labelColor),
+                    DPLabel(@"Open links from other apps in the right profile, by domain.", 11,
+                            NSFontWeightRegular, NSColor.secondaryLabelColor) ], 2),
+    ]];
+    leading.spacing = 10;
+    NSStackView *trailing = [NSStackView stackViewWithViews:@[
+        DPLabel(@"Edit", 13, NSFontWeightRegular, NSColor.secondaryLabelColor),
+        DPSymbol(@"chevron.right", 11, NSColor.tertiaryLabelColor),
+    ]];
+    trailing.spacing = 10;
+    __weak DPOverviewView *weakSelf = self;
+    NSView *row = DPLinkRow(DPRow(leading, trailing), @"Air Traffic Control", ^{
+        weakSelf.open(@"Air Traffic Control", [[DPAtcView alloc] initWithFrame:NSZeroRect]);
+    });
+    [self.searchText setObject:@"Air Traffic Control route links profiles domain x.com twitter posthog"
+                        forKey:row];
     return row;
 }
 
