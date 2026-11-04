@@ -36,6 +36,7 @@
         self.sectionHiders[section] = !shared || [shared isEqual:hider] ? hider : @"";
         add(section, [self rowForPatch:patch]);
     }
+    add(@"BYOK", [self byokRow]);
     for (NSView *row in [self makeUpdateRows]) add(@"Updates", row);
 
     NSMutableArray<NSView *> *views = [NSMutableArray new];
@@ -80,6 +81,28 @@
     __weak DPOverviewView *weakSelf = self;
     NSView *row = DPLinkRow(DPRow(leading, trailing), patch->title, ^{ weakSelf.open(patch->title, [[DPPageView alloc] initWithPatch:patch]); });
     [self.searchText setObject:search forKey:row];
+    return row;
+}
+
+// dia-byok: the BYOK Providers page (vendor, API key, endpoint), not a patch.
+- (NSView *)byokRow {
+    NSStackView *leading = [NSStackView stackViewWithViews:@[
+        DPIconTile(@"key.horizontal", [NSColor valueForKey:@"systemPinkColor"]),
+        DPColumn(@[ DPLabel(@"BYOK Providers", 13, NSFontWeightRegular, NSColor.labelColor),
+                    DPLabel(@"Choose the vendor, API key and endpoint for your own AI key.", 11, NSFontWeightRegular,
+                            NSColor.secondaryLabelColor) ], 2),
+    ]];
+    leading.spacing = 10;
+    NSStackView *trailing = [NSStackView stackViewWithViews:@[
+        DPLabel(@"Edit", 13, NSFontWeightRegular, NSColor.secondaryLabelColor),
+        DPSymbol(@"chevron.right", 11, NSColor.tertiaryLabelColor),
+    ]];
+    trailing.spacing = 10;
+    __weak DPOverviewView *weakSelf = self;
+    NSView *row = DPLinkRow(DPRow(leading, trailing), @"BYOK Providers", ^{
+        weakSelf.open(@"BYOK Providers", [[DPByokView alloc] initWithFrame:NSZeroRect]);
+    });
+    [self.searchText setObject:@"BYOK Providers vendor api key endpoint zro openai" forKey:row];
     return row;
 }
 
