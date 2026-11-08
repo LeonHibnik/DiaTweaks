@@ -1,0 +1,44 @@
+#!/bin/bash
+# Fixes the screen-capture permission loop: pressing Share in a video call
+# re-asks to record the screen even though the toggle is already on.
+#
+# Cause: TCC stores each grant with the app's code-signing requirement. DiaTweaks
+# re-signs Dia with its own local identity, so rows recorded while Dia still had
+# its official signature never match again. Screen capture is never re-prompted
+# while a (stale) row exists, so every check is denied forever — the row cannot
+# heal itself. Removing it and granting once records it against the local
+# identity, which is stable across re-signs, so this happens only once.
+
+set -uo pipefail
+
+BUNDLE="company.thebrowser.dia"
+SERVICE="ScreenCapture"
+PANE="x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+
+echo "==> Checking for the stale-permission symptom"
+SYMPTOM=$(/usr/bin/log show --last 10m --predicate 'processImagePath CONTAINS "tccd"' --info 2>/dev/null \
+    | grep -c "Failed to match existing code requirement for subject $BUNDLE" || true)
+[ "$SYMPTOM" -gt 0 ] && echo "    found $SYMPTOM failed matches in the last 10 minutes" \
+                      || echo "    no failed matches right now (the loop may be idle)"
+
+echo "==> Trying tccutil reset (works where LaunchServices resolves the bundle)"
+if tccutil reset "$SERVICE" "$BUNDLE" 2>/dev/null | grep -q "Successfully reset"; then
+    echo "    reset done — share your screen once and grant when asked"
+    exit 0
+fi
+echo "    tccutil cannot resolve $BUNDLE (a known LaunchServices quirk on some systems)"
+
+echo "==> Opening System Settings at Screen Recording"
+open "$PANE"
+cat <<'EOF'
+
+Remove the stale row, then grant once:
+
+ 1. Select Dia in the list and click − (Remove). The toggle may be on; that is
+    fine — the row's recorded signature is what is stale.
+ 2. Open Dia, start sharing your screen and click Share.
+ 3. When asked, open System Settings, switch Dia on, and let macOS restart Dia.
+
+The new grant is recorded against DiaTweaks' stable local signing identity, so
+re-signing Dia no longer breaks it.
+EOF
