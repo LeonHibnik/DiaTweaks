@@ -51,6 +51,9 @@ NSURL *DPWikiURL(DPPatch *patch);
 @interface DPByokView : NSStackView
 @end
 
+@interface DPAtcView : NSStackView
+@end
+
 @interface DPOverviewView : NSStackView
 @property (nonatomic, copy) void (^open)(NSString *title, NSView *page);
 @property (nonatomic, strong) NSMapTable<NSView *, NSString *> *searchText;
